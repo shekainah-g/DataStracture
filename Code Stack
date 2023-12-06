@@ -7,7 +7,6 @@ public class CodeStack {
     public static double expression(String expression, ArrayList<String> steps) {
         expression = expression.replaceAll("\\s", "");
 
-
         if (!isValidExpression(expression)) {
             return Double.NaN;
         }
@@ -104,11 +103,24 @@ public class CodeStack {
     }
 
     private static boolean isValidExpression(String expression) {
-        for (char ch : expression.toCharArray()) {
+        if ("+-*/^".indexOf(expression.charAt(0)) != -1) {
+            return false;
+        }
+
+        for (int i = 0; i < expression.length(); i++) {
+            char ch = expression.charAt(i);
+
+            if ("+-*/^".indexOf(ch) != -1) {
+                if (i + 1 < expression.length() && "+-*/^".indexOf(expression.charAt(i + 1)) != -1) {
+                    return false;
+                }
+            }
+
             if (!(Character.isDigit(ch) || "+-*/^()".indexOf(ch) != -1)) {
                 return false;
             }
         }
+
         return true;
     }
 
@@ -143,7 +155,6 @@ public class CodeStack {
         return postfix.toString().trim();
     }
 
-
     public static void main(String[] args) {
         Scanner scnr = new Scanner(System.in);
 
@@ -173,3 +184,4 @@ public class CodeStack {
         }
     }
 }
+
