@@ -17,7 +17,7 @@ public class CodeStack {
         for (int i = 0; i < expression.length(); i++) {
             char ch = expression.charAt(i);
 
-            if (Character.isDigit(ch)) {
+            if (Character.isDigit(ch) || (ch == '-' && (i == 0 || "+-*/^(".indexOf(expression.charAt(i - 1)) != -1))) {
                 StringBuilder operand = new StringBuilder();
                 operand.append(ch);
 
@@ -38,9 +38,9 @@ public class CodeStack {
                     steps.remove(steps.size() - 1);
                     steps.set(steps.size() - 1, step);
                     operandStack.push(operation(operand1, operator, operand2));
-                    System.out.println("Step: " + step + " = " + operandStack.peek());
+                    System.out.println("Step: " + step);
                 }
-                operatorStack.pop(); // Discard the '('
+                operatorStack.pop();
             } else if ("+-*/^".indexOf(ch) != -1) {
                 while (!operatorStack.isEmpty() && precedence(operatorStack.peek()) >= precedence(ch)) {
                     char operator = operatorStack.pop();
@@ -50,7 +50,7 @@ public class CodeStack {
                     steps.remove(steps.size() - 1);
                     steps.set(steps.size() - 1, step);
                     operandStack.push(operation(operand1, operator, operand2));
-                    System.out.println("Step: " + step + " = " + operandStack.peek());
+                    System.out.println("Step: " + step);
                 }
                 operatorStack.push(ch);
             }
@@ -64,7 +64,7 @@ public class CodeStack {
             steps.remove(steps.size() - 1);
             steps.set(steps.size() - 1, step);
             operandStack.push(operation(operand1, operator, operand2));
-            System.out.println("Step: " + step + " = " + operandStack.peek());
+            System.out.println("Step: " + step);
         }
 
         return operandStack.pop();
@@ -83,27 +83,23 @@ public class CodeStack {
     }
 
     private static double operation(double operand1, char operator, double operand2) {
-        switch (operator) {
-            case '+':
-                return operand1 + operand2;
-            case '-':
-                return operand1 - operand2;
-            case '*':
-                return operand1 * operand2;
-            case '/':
+        return switch (operator) {
+            case '+' -> operand1 + operand2;
+            case '-' -> operand1 - operand2;
+            case '*' -> operand1 * operand2;
+            case '/' -> {
                 if (operand2 == 0) {
                     throw new ArithmeticException("Division by zero is not allowed");
                 }
-                return operand1 / operand2;
-            case '^':
-                return Math.pow(operand1, operand2);
-            default:
-                throw new IllegalArgumentException("Invalid operator: " + operator);
-        }
+                yield operand1 / operand2;
+            }
+            case '^' -> Math.pow(operand1, operand2);
+            default -> throw new IllegalArgumentException("Invalid operator: " + operator);
+        };
     }
 
     private static boolean isValidExpression(String expression) {
-        if ("+-*/^".indexOf(expression.charAt(0)) != -1) {
+        if ("+-*/^".indexOf(expression.charAt(0)) != -1 || "+-*/^".indexOf(expression.charAt(expression.length() - 1)) != -1) {
             return false;
         }
 
@@ -111,8 +107,11 @@ public class CodeStack {
             char ch = expression.charAt(i);
 
             if ("+-*/^".indexOf(ch) != -1) {
-                if (i + 1 < expression.length() && "+-*/^".indexOf(expression.charAt(i + 1)) != -1) {
-                    return false;
+                if (i + 1 < expression.length()) {
+                    char nextChar = expression.charAt(i + 1);
+                    if ("+-*/^".indexOf(nextChar) != -1 && ch == nextChar) {
+                        return false;
+                    }
                 }
             }
 
@@ -167,13 +166,11 @@ public class CodeStack {
                 break;
             }
 
-            String infixExp = infix;
-
             ArrayList<String> steps = new ArrayList<>();
-            double result = expression(infixExp, steps);
+            double result = expression(infix, steps);
 
             if (!Double.isNaN(result)) {
-                String postfixExpression = Postfix(infixExp);
+                String postfixExpression = Postfix(infix);
                 System.out.println("Infix to Postfix: " + postfixExpression);
 
                 System.out.println("Final Result: " + result);
@@ -184,4 +181,3 @@ public class CodeStack {
         }
     }
 }
-
