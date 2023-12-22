@@ -1,0 +1,295 @@
+// Shekainah P. Gaceta      BSIT 2B
+import java.util.Scanner;
+class Node {
+    int data;
+    Node left, right;
+
+    public Node(int value) {
+        data = value;
+        left = right = null;
+    }
+}
+
+class BinaryTree {
+    Node root;
+
+    public BinaryTree() {
+        root = null;
+    }
+
+    void insert(int data) {
+        root = insertRec(root, data);
+    }
+
+    Node insertRec(Node root, int data) {
+        if (root == null) {
+            root = new Node(data);
+            return root;
+        }
+
+        if (data < root.data) {
+            root.left = insertRec(root.left, data);
+        } else if (data > root.data) {
+            root.right = insertRec(root.right, data);
+        }
+
+        return root;
+    }
+
+    void inorder() {
+        inorderRec(root);
+        System.out.println();
+    }
+
+    void inorderRec(Node root) {
+        if (root != null) {
+            inorderRec(root.left);
+            System.out.print(root.data + " ");
+            inorderRec(root.right);
+        }
+    }
+
+    void preorder() {
+        preorderRec(root);
+        System.out.println();
+    }
+
+    void preorderRec(Node root) {
+        if (root != null) {
+            System.out.print(root.data + " ");
+            preorderRec(root.left);
+            preorderRec(root.right);
+        }
+    }
+
+    void postorder() {
+        postorderRec(root);
+        System.out.println();
+    }
+
+    void postorderRec(Node root) {
+        if (root != null) {
+            postorderRec(root.left);
+            postorderRec(root.right);
+            System.out.print(root.data + " ");
+        }
+    }
+
+    public boolean delete(int key) {
+        Node parent = root;
+        Node current = root;
+        boolean isLeftChild = false;
+
+        while (current.data != key) {
+            parent = current;
+            if (key < current.data) {
+                current = current.left;
+                isLeftChild = true;
+            } else {
+                current = current.right;
+                isLeftChild = false;
+            }
+            if (current == null) {
+                return false; // Node not found
+            }
+        }
+
+        if (current.left == null && current.right == null) {
+            if (current == root) {
+                root = null;
+            } else if (isLeftChild) {
+                parent.left = null;
+            } else {
+                parent.right = null;
+            }
+        }
+        else if (current.right == null) {
+            if (current == root) {
+                root = current.left;
+            } else if (isLeftChild) {
+                parent.left = current.left;
+            } else {
+                parent.right = current.left;
+            }
+        } else if (current.left == null) {
+            if (current == root) {
+                root = current.right;
+            } else if (isLeftChild) {
+                parent.left = current.right;
+            } else {
+                parent.right = current.right;
+            }
+        }
+        else {
+            Node successor = getSuccessor(current);
+
+            if (current == root) {
+                root = successor;
+            } else if (isLeftChild) {
+                parent.left = successor;
+            } else {
+                parent.right = successor;
+            }
+            successor.left = current.left;
+        }
+        return true;
+    }
+
+    private Node getSuccessor(Node deleteNode) {
+        Node successorParent = deleteNode;
+        Node successor = deleteNode;
+        Node current = deleteNode.right;
+
+        while (current != null) {
+            successorParent = successor;
+            successor = current;
+            current = current.left;
+        }
+
+        if (successor != deleteNode.right) {
+            successorParent.left = successor.right;
+            successor.right = deleteNode.right;
+        }
+        return successor;
+    }
+    public boolean search(int key) {
+        Node current = root;
+        while (current != null) {
+            if (key == current.data) {
+                return true;
+            } else if (key < current.data) {
+                current = current.left;
+            } else {
+                current = current.right;
+            }
+        }
+        return false;
+    }
+
+    public static void main(String[] args) {
+        BinaryTree tree = new BinaryTree();
+        Scanner scanner = new Scanner(System.in);
+        int choice;
+        int ctr = 0;
+        System.out.println("Welcome to Binary Tree Organizer!");
+
+        do{
+            System.out.println("\n1. Insert\n2. Delete\n3. Search\n4. View \n5. Exit");
+            System.out.printf("Select number: ");
+
+            while(!scanner.hasNextInt()){
+                System.out.println("Invalid input! Please enter a valid number.");
+                scanner.next();
+
+            }
+            choice = scanner.nextInt();
+            switch(choice){
+                case 1:
+                    while (true) {
+                        System.out.printf("Enter a number (Type 'x' to stop insertion): ");
+                        String userInput = scanner.next();
+
+                        if (userInput.equalsIgnoreCase("x")) {
+                            break; // Exit the insertion loop
+                        }
+
+                        try {
+                            int userValue = Integer.parseInt(userInput);
+                            tree.insert(userValue);
+                            if (++ctr == 10) {
+                                System.out.println("\nTree is Full!");
+                                break;
+                            }
+                        } catch (NumberFormatException e) {
+                            System.out.println("Invalid input. Please enter a valid number or 'x' to stop insertion.");
+                        }
+                    }
+
+                    System.out.println("\nInsertion Successful!");
+                    System.out.println("==================");
+                    System.out.println("Inorder traversal:");
+                    tree.inorder();
+                    System.out.println("Preorder traversal:");
+                    tree.preorder();
+                    System.out.println("Postorder traversal:");
+                    tree.postorder();
+                    System.out.println("==================");
+                    break;
+
+                case 2:
+                    if (tree.root == null) {
+                        System.out.println("Tree is empty. Nothing to delete.");
+                        break;
+                    }
+
+                    tree.inorder();
+                    do {
+                        System.out.print("\nEnter value to delete: ");
+                        while (!scanner.hasNextInt()) {
+                            System.out.println("Invalid input. Please enter a valid number.");
+                            scanner.next();
+                        }
+                        int delValue = scanner.nextInt();
+                        boolean isDeleted = tree.delete(delValue);
+                        if (isDeleted) {
+                            System.out.println("Value deleted successfully.");
+                            tree.inorder();
+                            break;
+                        } else {
+                            System.out.println("Value not found in the tree. Please enter a valid value.");
+                        }
+                    } while (true);
+                    break;
+                case 3:
+                    do {
+                        System.out.print("Enter value to search: ");
+                        while (!scanner.hasNextInt()) {
+                            System.out.println("Invalid input. Please enter a valid number.");
+                            scanner.next();
+                        }
+                        int searchValue = scanner.nextInt();
+                        boolean isFound = tree.search(searchValue);
+                        if (isFound) {
+                            System.out.println("Value found in the tree.");
+                        } else {
+                            System.out.println("Value not found in the tree.");
+                        }
+
+                        System.out.println("\n1. Search another value\n2. Return to main menu");
+                        System.out.print("Select number: ");
+                        while (!scanner.hasNextInt()) {
+                            System.out.println("Invalid input. Please enter a valid number.");
+                            scanner.next();
+                        }
+                        int searchChoice = scanner.nextInt();
+
+                        if (searchChoice == 2) {
+                            break;
+                        }
+                    } while (true);
+                    break;
+
+                case 4:
+                    if (tree.root == null) {
+                        System.out.println("Tree is empty. Nothing to view.");
+                        break;
+                    }
+
+                    System.out.println("\nInsertion Successful!");
+                    System.out.println("==================");
+                    System.out.println("Inorder traversal:");
+                    tree.inorder();
+                    System.out.println("Preorder traversal:");
+                    tree.preorder();
+                    System.out.println("Postorder traversal:");
+                    tree.postorder();
+                    System.out.println("==================");
+                    break;
+
+                case 5:
+                    System.out.println("Quitting program..."); System.exit(0); break;
+                default:System.out.println("Invalid choice. Please enter a valid choice.");}
+        }while(true);
+
+    }
+}
